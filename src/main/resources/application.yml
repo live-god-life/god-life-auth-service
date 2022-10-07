@@ -1,0 +1,23 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: auth-service
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka
+  instance:
+    instance-id: ${spring.application.name}:${eureka.instance.instance-id:${random.value}
+
+jwt:
+  secret-key: z1gWDQyOzFEV7pv5PIMhauPQen4cbXVBG8sM1SfKT6FrXm8FPnRdLUrRJqMGF4cWPMjna9mOxzAfup9SCX6QZKZikBf4iIYjevI7
+  access-token-expired-time: 3600000       # 1시간
+  refresh-token-expired-time: 1209600000   # 2주
+
+url:
+  api-gateway: http://localhost:8000
