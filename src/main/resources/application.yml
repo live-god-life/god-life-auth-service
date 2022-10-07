@@ -10,7 +10,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://127.0.0.1:8761/eureka
+      defaultZone: http://49.50.167.208:8761/eureka
   instance:
     instance-id: ${spring.application.name}:${eureka.instance.instance-id:${random.value}
     prefer-ip-address: true
@@ -21,4 +21,4 @@ jwt:
   refresh-token-expired-time: 1209600000   # 2주
 
 url:
-  api-gateway: http://localhost:8000
+  api-gateway: http://49.50.167.208:80
