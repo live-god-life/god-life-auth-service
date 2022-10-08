@@ -21,4 +21,4 @@ jwt:
   refresh-token-expired-time: 1209600000   # 2주
 
 url:
-  api-gateway: http://49.50.167.208:8000
+  api-gateway: lb://APIGATEWAY-SERVICE
