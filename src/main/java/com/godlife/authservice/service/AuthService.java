@@ -32,19 +32,19 @@ public class AuthService {
     private static final String IDENTIFIER_KEY = "identifier";
 
     /** JWT Secret Key */
-    @Value("${jwt.secret-key}")
+    @Value("${jwt.secretKey}")
     private String jwtSecretKey;
 
     /** Access Token 만료 시간 */
-    @Value("${jwt.access-token-expired-time}")
+    @Value("${jwt.accessTokenExpiredTime}")
     private long accessTokenExpiredTime;
 
     /** Refresh Token 만료 시간 */
-    @Value("${jwt.refresh-token-expired-time}")
+    @Value("${jwt.refreshTokenExpiredTime}")
     private long refreshTokenExpiredTime;
 
     /** Api-Gateway Service URL */
-    @Value("${url.api-gateway}")
+    @Value("${url.apiGateway}")
     private String apiGatewayURL;
 
     /**
