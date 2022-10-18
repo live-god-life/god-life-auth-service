@@ -19,7 +19,6 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("")
 public class AuthController {
 
     /** 로그인 결과 body data key (token_type) */
