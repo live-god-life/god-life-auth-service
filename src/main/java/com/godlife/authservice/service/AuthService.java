@@ -91,7 +91,7 @@ public class AuthService {
         // DB에 Refresh Token 저장
         user.setRefreshToken(refreshToken);
 
-        webClient.put()
+        webClient.patch()
                  .uri("/users")
                  .bodyValue(user)
                  .retrieve()
