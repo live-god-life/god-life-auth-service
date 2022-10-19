@@ -79,7 +79,7 @@ public class AuthService {
 
         UserDto user = webClient.get()
                                 .uri(uriBuilder -> uriBuilder
-                                        .path("/user")
+                                        .path("/users")
                                         .queryParam(TYPE_KEY, type)
                                         .queryParam(IDENTIFIER_KEY, identifier)
                                         .build())
