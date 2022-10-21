@@ -7,6 +7,7 @@ public enum ResponseCode {
     // 성공 코드
     LOGIN_OK("success", null, "로그인을 성공했습니다.", HttpStatus.OK),                    // 로그인 성공
     LOGOUT_OK("success", null, "로그아웃을 성공했습니다.", HttpStatus.OK),                  // 로그아웃 성공
+    TOKEN_CREATE_SUCCESS("success", null, "토큰 생성을 완료했습니다.", HttpStatus.OK),      // 토큰 생성 성공
 
     // 실패 코드
     INVALID_PARAMETER("error", 400, "올바른 정보가 아닙니다.", HttpStatus.BAD_REQUEST),    // 파라미터 오류

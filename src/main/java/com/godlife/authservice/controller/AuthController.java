@@ -1,5 +1,6 @@
 package com.godlife.authservice.controller;
 
+import com.godlife.authservice.domain.dto.UserDto;
 import com.godlife.authservice.domain.request.RequestLogin;
 import com.godlife.authservice.exception.AuthException;
 import com.godlife.authservice.response.ApiResponse;
@@ -8,6 +9,7 @@ import com.godlife.authservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +21,6 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("")
 public class AuthController {
 
     /** 로그인 결과 body data key (token_type) */
@@ -30,6 +31,16 @@ public class AuthController {
 
     /** 인증 관련 서비스 */
     private final AuthService authService;
+
+    /**
+     * 토큰 생성 후 반환
+     * @param name      닉네임
+     * @return
+     */
+    @GetMapping("/tokens")
+    public ResponseEntity<ApiResponse> createAccessToken(String name) {
+        return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, authService.createJwtToken(name, AuthService.Token.ACCESS_TOKEN)));
+    }
 
     /**
      * 로그인
