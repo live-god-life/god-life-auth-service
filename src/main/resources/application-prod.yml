@@ -12,6 +12,3 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${eureka.instance.instance-id:${random.value}
     prefer-ip-address: true
-
-url:
-  apiGateway: http://49.50.167.208:8000

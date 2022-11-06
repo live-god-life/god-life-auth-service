@@ -1,5 +1,6 @@
 package com.godlife.authservice.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.godlife.authservice.domain.dto.UserDto;
 import com.godlife.authservice.domain.request.RequestLogin;
 import com.godlife.authservice.exception.AuthException;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -24,6 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
+
+    /** ObjectMapper */
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     /** WebClient 통신 Key (type) */
     private static final String TYPE_KEY = "type";
@@ -51,9 +56,8 @@ public class AuthService {
         this.refreshTokenExpiredTime = refreshTokenExpiredTime;
     }
 
-    /** Api-Gateway Service URL */
-    @Value("${url.apiGateway}")
-    private String apiGatewayURL;
+    /** Eureka LoadBalancer */
+    private final LoadBalancerClient loadBalancerClient;
 
     /**
      * 로그인
@@ -75,17 +79,19 @@ public class AuthService {
         }
 
         // user-service 호출 (회원 확인)
-        WebClient webClient = WebClient.create(apiGatewayURL);
+        WebClient webClient = WebClient.create(loadBalancerClient.choose("USER-SERVICE").getUri().toString());
 
-        UserDto user = webClient.get()
-                                .uri(uriBuilder -> uriBuilder
-                                        .path("/users")
-                                        .queryParam(TYPE_KEY, type)
-                                        .queryParam(IDENTIFIER_KEY, identifier)
-                                        .build())
-                                .retrieve()
-                                .bodyToMono(UserDto.class)
-                                .block();
+        ApiResponse<UserDto> response = webClient.get()
+                                                 .uri(uriBuilder -> uriBuilder
+                                                        .path("/users")
+                                                        .queryParam(TYPE_KEY, type)
+                                                        .queryParam(IDENTIFIER_KEY, identifier)
+                                                        .build())
+                                                 .retrieve()
+                                                 .bodyToMono(ApiResponse.class)
+                                                 .block();
+
+        UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);
 
         // 비회원인 경우 -> 회원가입 신호
         if(user == null) {
@@ -93,8 +99,8 @@ public class AuthService {
         }
 
         // 회원인 경우 -> Service Token 생성
-        String accessToken = createJwtToken(user.getNickname(), Token.ACCESS_TOKEN);
-        String refreshToken = createJwtToken(user.getNickname(), Token.REFRESH_TOKEN);
+        String accessToken = createJwtToken(String.valueOf(user.getUserId()), Token.ACCESS_TOKEN);
+        String refreshToken = createJwtToken(String.valueOf(user.getUserId()), Token.REFRESH_TOKEN);
 
         // DB에 Refresh Token 저장
         user.setRefreshToken(refreshToken);
@@ -112,17 +118,22 @@ public class AuthService {
 
     /**
      * JWT Token 생성
-     * @param name          닉네임 정보
+     * @param userId        사용자 아이디
      * @param token         토큰 종류
      * @return JWT Token 반환
      */
-    public String createJwtToken(String name, Token token) {
+    public String createJwtToken(String userId, Token token) {
+
+        // 회원 아이디 빈 값 체크
+        if(!StringUtils.hasText(userId)) {
+            return null;
+        }
 
         // 토큰 종류에 따른 만료시간 세팅
         long expiredTime = token.expiredTime;
 
         // 토큰 생성 시 필요한 정보 (sub, 토큰 만료시간)
-        Claims claims = Jwts.claims().setSubject(name);
+        Claims claims = Jwts.claims().setSubject(userId);
         Date tokenExpiresTime = new Date(System.currentTimeMillis() + expiredTime);
 
         // JWT Token 생성
