@@ -21,4 +21,7 @@ public class UserDto {
 
     /** 회원 이메일 */
     private String email;
+
+    /** 회원 프로필 이미지 */
+    private String image;
 }
