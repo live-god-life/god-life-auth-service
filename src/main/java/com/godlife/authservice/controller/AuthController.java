@@ -34,12 +34,12 @@ public class AuthController {
 
     /**
      * 토큰 생성 후 반환
-     * @param name      닉네임
+     * @param userId      회원 아이디
      * @return
      */
     @GetMapping("/tokens")
-    public ResponseEntity<ApiResponse> createAccessToken(String name) {
-        return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, authService.createJwtToken(name, AuthService.Token.ACCESS_TOKEN)));
+    public ResponseEntity<ApiResponse> createAccessToken(String userId) {
+        return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, authService.createJwtToken(userId, AuthService.Token.ACCESS_TOKEN)));
     }
 
     /**
