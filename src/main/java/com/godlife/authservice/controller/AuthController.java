@@ -8,13 +8,11 @@ import com.godlife.authservice.response.ResponseCode;
 import com.godlife.authservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +46,7 @@ public class AuthController {
      * @return 로그인 결과
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(RequestLogin requestData) {
+    public ResponseEntity<ApiResponse> login(@RequestBody RequestLogin requestData) {
         // bodyData 생성
         Map<String, String> bodyData = new HashMap<>(){{
             put(TOKEN_TYPE, "Bearer");
