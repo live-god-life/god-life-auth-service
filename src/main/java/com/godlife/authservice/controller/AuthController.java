@@ -1,8 +1,6 @@
 package com.godlife.authservice.controller;
 
-import com.godlife.authservice.domain.dto.UserDto;
 import com.godlife.authservice.domain.request.RequestLogin;
-import com.godlife.authservice.exception.AuthException;
 import com.godlife.authservice.response.ApiResponse;
 import com.godlife.authservice.response.ResponseCode;
 import com.godlife.authservice.service.AuthService;
@@ -58,18 +56,11 @@ public class AuthController {
 
     /**
      * 로그아웃
-     * @param request       Request 객체
      * @param response      Response 객체
      * @return 로그아웃 결과
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response) {
-        String accessToken = request.getHeader(AUTHORIZATION);
-
-        if(!StringUtils.hasText(accessToken)) {
-            throw new AuthException(ResponseCode.INVALID_PARAMETER);
-        }
-
+    public ResponseEntity<ApiResponse> logout(HttpServletResponse response) {
         response.reset();
         return ResponseEntity.ok(new ApiResponse(ResponseCode.LOGOUT_OK, null));
     }
