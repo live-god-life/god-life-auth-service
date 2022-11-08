@@ -14,13 +14,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +87,10 @@ public class AuthService {
         }
 
         // user-service 호출 (회원 확인)
-        WebClient webClient = WebClient.create(loadBalancerClient.choose("USER-SERVICE").getUri().toString());
+        WebClient webClient = WebClient.builder()
+                                       .clientConnector(new ReactorClientHttpConnector(HttpClient.create(ConnectionProvider.newConnection())))
+                                       .baseUrl(loadBalancerClient.choose("USER-SERVICE").getUri().toString())
+                                       .build();
 
         ApiResponse<UserDto> response = webClient.get()
                                                  .uri(uriBuilder -> uriBuilder
@@ -89,6 +100,7 @@ public class AuthService {
                                                         .build())
                                                  .retrieve()
                                                  .bodyToMono(ApiResponse.class)
+                                                 .onErrorComplete()
                                                  .block();
 
         UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);

@@ -1,20 +1,16 @@
 package com.godlife.authservice.controller;
 
-import com.godlife.authservice.domain.dto.UserDto;
 import com.godlife.authservice.domain.request.RequestLogin;
-import com.godlife.authservice.exception.AuthException;
 import com.godlife.authservice.response.ApiResponse;
 import com.godlife.authservice.response.ResponseCode;
 import com.godlife.authservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +44,7 @@ public class AuthController {
      * @return 로그인 결과
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(RequestLogin requestData) {
+    public ResponseEntity<ApiResponse> login(@RequestBody RequestLogin requestData) {
         // bodyData 생성
         Map<String, String> bodyData = new HashMap<>(){{
             put(TOKEN_TYPE, "Bearer");
@@ -60,18 +56,11 @@ public class AuthController {
 
     /**
      * 로그아웃
-     * @param request       Request 객체
      * @param response      Response 객체
      * @return 로그아웃 결과
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response) {
-        String accessToken = request.getHeader(AUTHORIZATION);
-
-        if(!StringUtils.hasText(accessToken)) {
-            throw new AuthException(ResponseCode.INVALID_PARAMETER);
-        }
-
+    public ResponseEntity<ApiResponse> logout(HttpServletResponse response) {
         response.reset();
         return ResponseEntity.ok(new ApiResponse(ResponseCode.LOGOUT_OK, null));
     }
