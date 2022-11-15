@@ -19,18 +19,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-    /** 로그인 결과 body data key (token_type) */
+    /**
+     * 로그인 결과 body data key (token_type)
+     */
     private static final String TOKEN_TYPE = "token_type";
 
-    /** 로그인 결과 body data key (authorization) */
+    /**
+     * 로그인 결과 body data key (authorization)
+     */
     private static final String AUTHORIZATION = "authorization";
 
-    /** 인증 관련 서비스 */
+    /**
+     * 인증 관련 서비스
+     */
     private final AuthService authService;
 
     /**
      * 토큰 생성 후 반환
-     * @param userId      회원 아이디
+     *
+     * @param userId 회원 아이디
      * @return
      */
     @GetMapping("/tokens")
@@ -40,13 +47,14 @@ public class AuthController {
 
     /**
      * 로그인
-     * @param requestData   로그인 시 필요한 데이터 (타입, 식별자)
+     *
+     * @param requestData 로그인 시 필요한 데이터 (타입, 식별자)
      * @return 로그인 결과
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse> login(@RequestBody RequestLogin requestData) {
         // bodyData 생성
-        Map<String, String> bodyData = new HashMap<>(){{
+        Map<String, String> bodyData = new HashMap<>() {{
             put(TOKEN_TYPE, "Bearer");
             put(AUTHORIZATION, authService.login(requestData));
         }};
@@ -56,7 +64,8 @@ public class AuthController {
 
     /**
      * 로그아웃
-     * @param response      Response 객체
+     *
+     * @param response Response 객체
      * @return 로그아웃 결과
      */
     @PostMapping("/logout")

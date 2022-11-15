@@ -35,20 +35,30 @@ import java.util.Map;
 @Slf4j
 public class AuthService {
 
-    /** ObjectMapper */
+    /**
+     * ObjectMapper
+     */
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    /** WebClient 통신 Key (type) */
+    /**
+     * WebClient 통신 Key (type)
+     */
     private static final String TYPE_KEY = "type";
 
-    /** WebClient 통신 Key (identifier) */
+    /**
+     * WebClient 통신 Key (identifier)
+     */
     private static final String IDENTIFIER_KEY = "identifier";
 
-    /** JWT Secret Key */
+    /**
+     * JWT Secret Key
+     */
     @Value("${jwt.secretKey}")
     private String jwtSecretKey;
 
-    /** Access Token 만료 시간 */
+    /**
+     * Access Token 만료 시간
+     */
     private static long accessTokenExpiredTime;
 
     @Value("${jwt.accessTokenExpiredTime}")
@@ -56,7 +66,9 @@ public class AuthService {
         this.accessTokenExpiredTime = accessTokenExpiredTime;
     }
 
-    /** Refresh Token 만료 시간 */
+    /**
+     * Refresh Token 만료 시간
+     */
     private static long refreshTokenExpiredTime;
 
     @Value("${jwt.refreshTokenExpiredTime}")
@@ -64,12 +76,15 @@ public class AuthService {
         this.refreshTokenExpiredTime = refreshTokenExpiredTime;
     }
 
-    /** Eureka LoadBalancer */
+    /**
+     * Eureka LoadBalancer
+     */
     private final LoadBalancerClient loadBalancerClient;
 
     /**
      * 로그인
-     * @param requestData   요청 body 데이터
+     *
+     * @param requestData 요청 body 데이터
      * @return access token
      */
     @Transactional
@@ -82,31 +97,31 @@ public class AuthService {
         String identifier = requestData.getIdentifier();
 
         // 파라미터 빈 값, 타입 유효성 예외 처리
-        if(!StringUtils.hasText(type) || !StringUtils.hasText(identifier) || !TYPE.contains(type)) {
+        if (!StringUtils.hasText(type) || !StringUtils.hasText(identifier) || !TYPE.contains(type)) {
             throw new AuthException(ResponseCode.INVALID_PARAMETER);
         }
 
         // user-service 호출 (회원 확인)
         WebClient webClient = WebClient.builder()
-                                       .clientConnector(new ReactorClientHttpConnector(HttpClient.create(ConnectionProvider.newConnection())))
-                                       .baseUrl(loadBalancerClient.choose("USER-SERVICE").getUri().toString())
-                                       .build();
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.create(ConnectionProvider.newConnection())))
+                .baseUrl(loadBalancerClient.choose("USER-SERVICE").getUri().toString())
+                .build();
 
         ApiResponse<UserDto> response = webClient.get()
-                                                 .uri(uriBuilder -> uriBuilder
-                                                        .path("/users")
-                                                        .queryParam(TYPE_KEY, type)
-                                                        .queryParam(IDENTIFIER_KEY, identifier)
-                                                        .build())
-                                                 .retrieve()
-                                                 .bodyToMono(ApiResponse.class)
-                                                 .onErrorComplete()
-                                                 .block();
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users")
+                        .queryParam(TYPE_KEY, type)
+                        .queryParam(IDENTIFIER_KEY, identifier)
+                        .build())
+                .retrieve()
+                .bodyToMono(ApiResponse.class)
+                .onErrorComplete()
+                .block();
 
         UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);
 
         // 비회원인 경우 -> 회원가입 신호
-        if(user == null) {
+        if (user == null) {
             throw new AuthException(ResponseCode.NOT_USER);
         }
 
@@ -118,11 +133,11 @@ public class AuthService {
         user.setRefreshToken(refreshToken);
 
         webClient.patch()
-                 .uri("/users")
-                 .bodyValue(user)
-                 .retrieve()
-                 .bodyToMono(ApiResponse.class)
-                 .block();
+                .uri("/users")
+                .bodyValue(user)
+                .retrieve()
+                .bodyToMono(ApiResponse.class)
+                .block();
 
         // Access Token 반환
         return accessToken;
@@ -130,14 +145,15 @@ public class AuthService {
 
     /**
      * JWT Token 생성
-     * @param userId        사용자 아이디
-     * @param token         토큰 종류
+     *
+     * @param userId 사용자 아이디
+     * @param token  토큰 종류
      * @return JWT Token 반환
      */
     public String createJwtToken(String userId, Token token) {
 
         // 회원 아이디 빈 값 체크
-        if(!StringUtils.hasText(userId)) {
+        if (!StringUtils.hasText(userId)) {
             return null;
         }
 
@@ -150,12 +166,12 @@ public class AuthService {
 
         // JWT Token 생성
         return Jwts.builder()
-                   .addClaims(claims)
-                   .setExpiration(tokenExpiresTime)
-                   .signWith(SignatureAlgorithm.HS512, jwtSecretKey.getBytes())
-                   .setIssuedAt(new Date())
-                   .setIssuer(RandomStringUtils.randomAlphanumeric(10))
-                   .compact();
+                .addClaims(claims)
+                .setExpiration(tokenExpiresTime)
+                .signWith(SignatureAlgorithm.HS512, jwtSecretKey.getBytes())
+                .setIssuedAt(new Date())
+                .setIssuer(RandomStringUtils.randomAlphanumeric(10))
+                .compact();
     }
 
     /**

@@ -8,9 +8,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class RequestLogin {
-    /** 회원 로그인 타입 */
+    /**
+     * 회원 로그인 타입
+     */
     private String type;
 
-    /** 회원 로그인 식별 값 */
+    /**
+     * 회원 로그인 식별 값
+     */
     private String identifier;
 }
