@@ -8,7 +8,7 @@ WORKDIR ${WORKSPACE}
 
 # copy code & build
 COPY . .
-RUN ./gradlew clean bootJar
+RUN ./gradlew clean bootjar -Pprofile=prod -x test
 
 # unpack jar
 WORKDIR ${BUILD_TARGET}
@@ -29,6 +29,10 @@ COPY --from=builder ${BUILD_TARGET}/META-INF ${DEPLOY_PATH}/META-INF
 COPY --from=builder ${BUILD_TARGET}/BOOT-INF/classes ${DEPLOY_PATH}/BOOT-INF/classes
 
 WORKDIR ${DEPLOY_PATH}
+
+ARG ENVIRONMENT
+
+ENV SPRING_PROFILES_ACTIVE=${ENVIRONMENT}
 
 # EXPOSE 8090/tcp
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]

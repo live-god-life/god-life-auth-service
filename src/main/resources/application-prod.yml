@@ -8,10 +8,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://49.50.167.208:8761/eureka
+      defaultZone: http://101.101.208.221:8761/eureka
   instance:
-    instance-id: ${spring.application.name}:${eureka.instance.instance-id:${random.value}
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
     prefer-ip-address: true
-
-url:
-  apiGateway: http://49.50.167.208:8000

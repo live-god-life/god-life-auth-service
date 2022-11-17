@@ -2,6 +2,7 @@ package com.godlife.authservice.response;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+
 @Getter
 public enum ResponseCode {
     // 성공 코드
@@ -13,16 +14,24 @@ public enum ResponseCode {
     INVALID_PARAMETER("error", 400, "올바른 정보가 아닙니다.", HttpStatus.BAD_REQUEST),    // 파라미터 오류
     NOT_USER("error", 401, "회원이 아닙니다.", HttpStatus.NOT_FOUND);                    // 비회원 (회원가입 이동)
 
-    /** 상태 (success / error) */
+    /**
+     * 상태 (success / error)
+     */
     private String status;
 
-    /** 오류 코드 */
+    /**
+     * 오류 코드
+     */
     private Integer code;
 
-    /** 오류 메시지 */
+    /**
+     * 오류 메시지
+     */
     private String message;
 
-    /** Http 상태 코드 */
+    /**
+     * Http 상태 코드
+     */
     private HttpStatus httpStatus;
 
     ResponseCode(String status, Integer code, String message, HttpStatus httpStatus) {

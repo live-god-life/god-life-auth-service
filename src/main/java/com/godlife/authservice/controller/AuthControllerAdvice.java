@@ -12,13 +12,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class AuthControllerAdvice {
     /**
      * AuthException Handler
-     * @param e     AuthException
+     *
+     * @param e AuthException
      * @return Exception 반환
      */
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ApiResponse> exceptionHandler(AuthException e) {
         // Exception 메시지 (ResponseCode 메시지)
-        if(log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info("Exception message: {}", e.getResponseCode().getMessage());
         }
 
