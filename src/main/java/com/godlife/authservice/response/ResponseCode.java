@@ -12,7 +12,7 @@ public enum ResponseCode {
 
     // 실패 코드
     INVALID_PARAMETER("error", 400, "올바른 정보가 아닙니다.", HttpStatus.BAD_REQUEST),    // 파라미터 오류
-    NOT_USER("error", 401, "회원이 아닙니다.", HttpStatus.NOT_FOUND);                    // 비회원 (회원가입 이동)
+    NOT_USER("error", 401, "회원이 아닙니다.", HttpStatus.OK);                           // 비회원 (회원가입 이동)
 
     /**
      * 상태 (success / error)
