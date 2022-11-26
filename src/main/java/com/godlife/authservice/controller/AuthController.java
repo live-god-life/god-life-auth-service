@@ -5,10 +5,12 @@ import com.godlife.authservice.response.ApiResponse;
 import com.godlife.authservice.response.ResponseCode;
 import com.godlife.authservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
@@ -36,13 +38,13 @@ public class AuthController {
 
     /**
      * 토큰 생성 후 반환
-     *
-     * @param userId 회원 아이디
+     * @param userId        회원 아이디
+     * @param accessToken   만료된 엑세스 토큰
      * @return
      */
     @GetMapping("/tokens")
-    public ResponseEntity<ApiResponse> createAccessToken(String userId) {
-        return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, authService.createJwtToken(userId, AuthService.Token.ACCESS_TOKEN)));
+    public ResponseEntity<ApiResponse<String>> createAccessToken(String userId, @RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
+        return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, authService.createJwtToken(userId, accessToken, AuthService.Token.ACCESS_TOKEN)));
     }
 
     /**
