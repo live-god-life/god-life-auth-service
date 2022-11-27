@@ -1,0 +1,13 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: auth-service
+  profiles:
+    active: local
+
+jwt:
+  secretKey: z1gWDQyOzFEV7pv5PIMhauPQen4cbXVBG8sM1SfKT6FrXm8FPnRdLUrRJqMGF4cWPMjna9mOxzAfup9SCX6QZKZikBf4iIYjevI7
+  accessTokenExpiredTime: 3600000       # 1시간
+  refreshTokenExpiredTime: 1209600000   # 2주
