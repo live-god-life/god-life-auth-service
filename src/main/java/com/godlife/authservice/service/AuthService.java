@@ -130,8 +130,8 @@ public class AuthService {
         }
 
         // 회원인 경우 -> Service Token 생성
-        String accessToken = createJwtToken(String.valueOf(user.getUserId()), null, Token.ACCESS_TOKEN);
-        String refreshToken = createJwtToken(String.valueOf(user.getUserId()), null, Token.REFRESH_TOKEN);
+        String accessToken = createJwtToken(String.valueOf(user.getUserId()), Token.ACCESS_TOKEN);
+        String refreshToken = createJwtToken(String.valueOf(user.getUserId()), Token.REFRESH_TOKEN);
 
         // DB에 Refresh Token 저장
         user.setAccessToken(accessToken);
@@ -148,46 +148,48 @@ public class AuthService {
         return accessToken;
     }
 
+    public String reToken(String accessToken) {
+
+        // user-service 호출 (회원 확인)
+        WebClient webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.create(ConnectionProvider.newConnection())))
+                .baseUrl(loadBalancerClient.choose("USER-SERVICE").getUri().toString())
+                .build();
+
+        ApiResponse<UserDto> response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users")
+                        .queryParam(ACCESS_TOKEN, accessToken)
+                        .build())
+                .retrieve()
+                .bodyToMono(ApiResponse.class)
+                .onErrorComplete()
+                .block();
+
+        UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);
+
+        // 회원 정보가 없는 경우
+        if(user == null) {
+            throw new AuthException(ResponseCode.NOT_USER);
+        }
+
+        // Refresh Token 검증
+        if(!isValidToken(user.getRefreshToken())) {
+            throw new AuthException(ResponseCode.EXPIRED_REFRESH_TOKEN);
+        }
+
+        // 로그인 처리 후 Access Token 반환
+        RequestLogin requestData = RequestLogin.of(user.getType(), user.getIdentifier());
+        return login(requestData);
+    }
+
+
     /**
      * JWT Token 생성
-     * @param accessToken   만료된 Access Token
      * @param token         토큰 종류
      * @return JWT Token 반환
      */
-    public String createJwtToken(String userId, String accessToken, Token token) {
-
-        // 토큰 재발급 요청 시
-        if (StringUtils.hasText(accessToken)) {
-            // user-service 호출 (회원 확인)
-            WebClient webClient = WebClient.builder()
-                    .clientConnector(new ReactorClientHttpConnector(HttpClient.create(ConnectionProvider.newConnection())))
-                    .baseUrl(loadBalancerClient.choose("USER-SERVICE").getUri().toString())
-                    .build();
-
-            ApiResponse<UserDto> response = webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/users")
-                            .queryParam(ACCESS_TOKEN, accessToken)
-                            .build())
-                    .retrieve()
-                    .bodyToMono(ApiResponse.class)
-                    .onErrorComplete()
-                    .block();
-
-            UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);
-
-            // 회원 정보가 없는 경우
-            if(user == null) {
-                throw new AuthException(ResponseCode.NOT_USER);
-            }
-
-            // Refresh Token 검증
-            if(!isValidToken(user.getRefreshToken())) {
-                throw new AuthException(ResponseCode.EXPIRED_REFRESH_TOKEN);
-            }
-
-            userId = user.getUserId().toString();
-        }
+    public String createJwtToken(String userId, Token token) {
 
         // 토큰 종류에 따른 만료시간 세팅
         long expiredTime = token.expiredTime;

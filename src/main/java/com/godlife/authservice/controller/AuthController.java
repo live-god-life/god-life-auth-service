@@ -39,13 +39,12 @@ public class AuthController {
 
     /**
      * 토큰 생성 후 반환
-     * @param userId        회원 아이디
      * @param accessToken   만료된 엑세스 토큰
      * @return
      */
     @GetMapping("/tokens")
-    public ResponseEntity<ApiResponse<String>> createAccessToken(String userId, @RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
-        TokenDto tokenDto = TokenDto.of("Bearer", authService.createJwtToken(userId, accessToken, AuthService.Token.ACCESS_TOKEN));
+    public ResponseEntity<ApiResponse<String>> createAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
+        TokenDto tokenDto = TokenDto.of("Bearer", authService.reToken(accessToken));
         return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, tokenDto));
     }
 
