@@ -1,5 +1,6 @@
 package com.godlife.authservice.controller;
 
+import com.godlife.authservice.domain.dto.TokenDto;
 import com.godlife.authservice.domain.request.RequestLogin;
 import com.godlife.authservice.response.ApiResponse;
 import com.godlife.authservice.response.ResponseCode;
@@ -44,7 +45,8 @@ public class AuthController {
      */
     @GetMapping("/tokens")
     public ResponseEntity<ApiResponse<String>> createAccessToken(String userId, @RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
-        return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, authService.createJwtToken(userId, accessToken, AuthService.Token.ACCESS_TOKEN)));
+        TokenDto tokenDto = TokenDto.of("Bearer", authService.createJwtToken(userId, accessToken, AuthService.Token.ACCESS_TOKEN));
+        return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, tokenDto));
     }
 
     /**
