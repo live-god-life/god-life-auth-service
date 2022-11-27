@@ -20,7 +20,7 @@ public class AuthServiceTest {
         String userId = null;
 
         // When
-        String token = authService.createJwtToken(userId, null, AuthService.Token.ACCESS_TOKEN);
+        String token = authService.createJwtToken(userId, AuthService.Token.ACCESS_TOKEN);
 
         // Then
         assertThat(token).isNull();
