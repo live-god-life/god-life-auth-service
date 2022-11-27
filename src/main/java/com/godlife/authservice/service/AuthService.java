@@ -7,28 +7,27 @@ import com.godlife.authservice.exception.AuthException;
 import com.godlife.authservice.response.ApiResponse;
 import com.godlife.authservice.response.ResponseCode;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +48,11 @@ public class AuthService {
      * WebClient 통신 Key (identifier)
      */
     private static final String IDENTIFIER_KEY = "identifier";
+
+    /**
+     * WebClient 통신 Key (accessToken)
+     */
+    private static final String ACCESS_TOKEN = "accessToken";
 
     /**
      * JWT Secret Key
@@ -126,10 +130,11 @@ public class AuthService {
         }
 
         // 회원인 경우 -> Service Token 생성
-        String accessToken = createJwtToken(String.valueOf(user.getUserId()), Token.ACCESS_TOKEN);
-        String refreshToken = createJwtToken(String.valueOf(user.getUserId()), Token.REFRESH_TOKEN);
+        String accessToken = createJwtToken(String.valueOf(user.getUserId()), null, Token.ACCESS_TOKEN);
+        String refreshToken = createJwtToken(String.valueOf(user.getUserId()), null, Token.REFRESH_TOKEN);
 
         // DB에 Refresh Token 저장
+        user.setAccessToken(accessToken);
         user.setRefreshToken(refreshToken);
 
         webClient.patch()
@@ -145,16 +150,43 @@ public class AuthService {
 
     /**
      * JWT Token 생성
-     *
-     * @param userId 사용자 아이디
-     * @param token  토큰 종류
+     * @param accessToken   만료된 Access Token
+     * @param token         토큰 종류
      * @return JWT Token 반환
      */
-    public String createJwtToken(String userId, Token token) {
+    public String createJwtToken(String userId, String accessToken, Token token) {
 
-        // 회원 아이디 빈 값 체크
-        if (!StringUtils.hasText(userId)) {
-            return null;
+        // 토큰 재발급 요청 시
+        if (StringUtils.hasText(accessToken)) {
+            // user-service 호출 (회원 확인)
+            WebClient webClient = WebClient.builder()
+                    .clientConnector(new ReactorClientHttpConnector(HttpClient.create(ConnectionProvider.newConnection())))
+                    .baseUrl(loadBalancerClient.choose("USER-SERVICE").getUri().toString())
+                    .build();
+
+            ApiResponse<UserDto> response = webClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/users")
+                            .queryParam(ACCESS_TOKEN, accessToken)
+                            .build())
+                    .retrieve()
+                    .bodyToMono(ApiResponse.class)
+                    .onErrorComplete()
+                    .block();
+
+            UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);
+
+            // 회원 정보가 없는 경우
+            if(user == null) {
+                throw new AuthException(ResponseCode.NOT_USER);
+            }
+
+            // Refresh Token 검증
+            if(!isValidToken(user.getRefreshToken())) {
+                throw new AuthException(ResponseCode.EXPIRED_REFRESH_TOKEN);
+            }
+
+            userId = user.getUserId().toString();
         }
 
         // 토큰 종류에 따른 만료시간 세팅
@@ -172,6 +204,36 @@ public class AuthService {
                 .setIssuedAt(new Date())
                 .setIssuer(RandomStringUtils.randomAlphanumeric(10))
                 .compact();
+    }
+
+    /**
+     * 토큰 유효성 검사
+     * @param token         토큰
+     * @return 토큰 유효성 검사 결과
+     */
+    private boolean isValidToken(String token) {
+        String subject;
+
+        try {
+            subject = Jwts.parser()
+                    .setSigningKey(jwtSecretKey.getBytes())
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (MalformedJwtException | SignatureException e) {
+            log.error("Invalid jwt signature");
+            return false;
+        } catch (UnsupportedJwtException e) {
+            log.error("Unsupported JWT token");
+            return false;
+        } catch (ExpiredJwtException e) {
+            log.error("Expired JWT token");
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+
+        return StringUtils.hasText(subject);
     }
 
     /**

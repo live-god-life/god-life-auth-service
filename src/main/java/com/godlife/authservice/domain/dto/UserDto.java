@@ -25,6 +25,11 @@ public class UserDto {
     private String identifier;
 
     /**
+     * 회원 access token
+     */
+    private String accessToken;
+
+    /**
      * 회원 refresh token
      */
     private String refreshToken;
