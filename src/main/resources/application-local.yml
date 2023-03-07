@@ -3,6 +3,12 @@ spring:
     activate:
       on-profile: local
 
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/onezo
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
 eureka:
   client:
     register-with-eureka: true
