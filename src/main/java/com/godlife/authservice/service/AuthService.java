@@ -121,12 +121,12 @@ public class AuthService {
                 .onErrorComplete()
                 .block();
 
+        UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);
+
         // 비회원인 경우 -> 회원가입 신호
-        if (response == null) {
+        if (user == null) {
             throw new AuthException(ResponseCode.NOT_USER);
         }
-
-        UserDto user = objectMapper.convertValue(response.getData(), UserDto.class);
 
         // 회원인 경우 -> Service Token 생성
         String accessToken = createJwtToken(String.valueOf(user.getUserId()), Token.ACCESS_TOKEN);
