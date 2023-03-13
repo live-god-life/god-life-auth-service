@@ -64,4 +64,16 @@ public class AuthController {
 
         return ResponseEntity.ok(new ApiResponse(ResponseCode.LOGIN_OK, bodyData));
     }
+
+    /**
+     * 로그아웃
+     *
+     * @param response Response 객체
+     * @return 로그아웃 결과
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse> logout(HttpServletResponse response) {
+        response.reset();
+        return ResponseEntity.ok(new ApiResponse(ResponseCode.LOGOUT_OK, null));
+    }
 }

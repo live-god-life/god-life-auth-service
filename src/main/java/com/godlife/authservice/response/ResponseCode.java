@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 public enum ResponseCode {
     // 성공 코드
     LOGIN_OK("success", null, "로그인을 성공했습니다.", HttpStatus.OK),                                   // 로그인 성공
-    LOGOUT_OK("success", null, "로그아웃을 성공했습니다.", HttpStatus.OK),                                // 로그아웃 성공
     TOKEN_CREATE_SUCCESS("success", null, "토큰을 생성했습니다.", HttpStatus.OK),                        // 토큰 생성 성공
 
     // 실패 코드
