@@ -5,18 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
+
 @Getter
 @Setter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RequestLogin {
-    /**
-     * 회원 로그인 타입
-     */
+
+    /** 회원 로그인 타입 */
+    @NotEmpty
     private String type;
 
-    /**
-     * 회원 로그인 식별 값
-     */
+    /** 회원 로그인 식별 값 */
+    @NotEmpty
     private String identifier;
 
     /**

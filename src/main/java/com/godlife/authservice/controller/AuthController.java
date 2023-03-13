@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public class AuthController {
      * @return
      */
     @GetMapping("/tokens")
-    public ResponseEntity<ApiResponse<String>> createAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
+    public ResponseEntity<ApiResponse<String>> createAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) @NotEmpty String accessToken) {
         TokenDto tokenDto = TokenDto.of("Bearer", authService.reToken(accessToken));
         return ResponseEntity.ok(new ApiResponse(ResponseCode.TOKEN_CREATE_SUCCESS, tokenDto));
     }
@@ -55,7 +56,8 @@ public class AuthController {
      * @return 로그인 결과
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@RequestBody RequestLogin requestData) {
+    public ResponseEntity<ApiResponse> login(@RequestBody @Valid RequestLogin requestData) {
+
         // bodyData 생성
         Map<String, String> bodyData = new HashMap<>() {{
             put(TOKEN_TYPE, "Bearer");
